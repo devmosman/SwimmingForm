@@ -1,0 +1,13 @@
+{
+  "name": "استمارات انتقال السباحين",
+  "short_name": "استمارات الانتقال",
+  "description": "تعبئة استمارة انتقال لاعب وإخراجها PDF من بيانات السباح أو ملف إكسيل",
+  "lang": "ar", "dir": "rtl",
+  "start_url": "./", "scope": "./",
+  "display": "standalone",
+  "background_color": "#EEF3F5", "theme_color": "#0B3A53",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

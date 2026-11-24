@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>استمارات انتقال السباحين</title>
+<meta name="theme-color" content="#0B3A53">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Cairo:wght@500&family=Tajawal:wght@500&family=Amiri&family=Noto+Naskh+Arabic:wght@500&family=Noto+Kufi+Arabic:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a pool deck. Deep-water header, a lane of swimmer rows below it,
+   one float-orange action that always means "make the PDF". */
+:root{
+  --water:#0B3A53; --water-2:#135673; --lane:#1C8FB3; --float:#E4572E;
+  --bg:#EEF3F5; --surface:#FFFFFF; --ink:#12232C; --muted:#5B6F7A; --line:#D3DEE3;
+  --ok:#1F7A4D; --ok-bg:#DDF1E6; --warn:#9A5B00; --warn-bg:#FBEBCD; --bad:#A3271B; --bad-bg:#F9DEDA;
+  --font:"IBM Plex Sans Arabic","Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --water:#082C40; --water-2:#0F4660; --lane:#4FB6D6; --float:#F0704A;
+    --bg:#0D1A21; --surface:#15262F; --ink:#E6EEF1; --muted:#93A7B1; --line:#27404C;
+    --ok:#7FD3A6; --ok-bg:#143626; --warn:#F0C06A; --warn-bg:#3A2C10; --bad:#F29A8F; --bad-bg:#42191A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --water:#082C40; --water-2:#0F4660; --lane:#4FB6D6; --float:#F0704A;
+  --bg:#0D1A21; --surface:#15262F; --ink:#E6EEF1; --muted:#93A7B1; --line:#27404C;
+  --ok:#7FD3A6; --ok-bg:#143626; --warn:#F0C06A; --warn-bg:#3A2C10; --bad:#F29A8F; --bad-bg:#42191A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.6}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--lane);outline-offset:2px}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px}
+
+header{background:var(--water);color:#fff;padding:20px 0 56px;
+  background-image:repeating-linear-gradient(90deg,transparent 0 46px,rgba(255,255,255,.05) 46px 48px)}
+header h1{margin:0;font-size:1.45rem;font-weight:700;text-wrap:balance}
+header p{margin:4px 0 0;color:#BFD8E3;font-size:.92rem;max-width:60ch}
+.season{display:inline-block;margin-top:10px;padding:2px 10px;border-radius:99px;background:var(--water-2);font-size:.82rem;font-variant-numeric:tabular-nums}
+
+main{margin-top:-40px;padding-bottom:48px;display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{padding:10px 12px;border-radius:10px;background:var(--bg)}
+.stat b{display:block;font-size:1.5rem;line-height:1.2;font-variant-numeric:tabular-nums}
+.stat span{font-size:.82rem;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:600;cursor:pointer;min-height:44px}
+.btn:hover{border-color:var(--lane)}
+.btn.primary{background:var(--float);border-color:var(--float);color:#fff}
+.btn.water{background:var(--water-2);border-color:var(--water-2);color:#fff}
+.btn.small{min-height:36px;padding:5px 10px;font-size:.88rem;font-weight:500}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.note{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.row{display:grid;grid-template-columns:54px 1fr;gap:12px;align-items:start;background:var(--surface);
+  border:1px solid var(--line);border-inline-start:5px solid var(--lane);border-radius:var(--r);padding:12px}
+.row.bad{border-inline-start-color:var(--bad)}
+.row.ok{border-inline-start-color:var(--ok)}
+.thumb{width:54px;height:70px;border-radius:6px;object-fit:cover;background:var(--bg);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:.7rem;color:var(--muted);text-align:center;line-height:1.2}
+.row h3{margin:0;font-size:1.05rem;font-weight:600;overflow-wrap:anywhere}
+.meta{font-size:.86rem;color:var(--muted);overflow-wrap:anywhere}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.pill{font-size:.78rem;padding:1px 9px;border-radius:99px;font-weight:600}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.bad{background:var(--bad-bg);color:var(--bad)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.info{background:var(--bg);color:var(--muted)}
+.issues{margin:4px 0 0;padding:0;list-style:none;font-size:.84rem;color:var(--bad)}
+.issues li.w{color:var(--warn)}
+.rowbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.empty{text-align:center;color:var(--muted);padding:28px 12px}
+
+dialog{border:0;border-radius:14px;padding:0;background:var(--surface);color:var(--ink);width:min(680px,calc(100vw - 24px));max-height:calc(100dvh - 24px)}
+dialog::backdrop{background:rgba(6,24,33,.6)}
+.dlg-head{position:sticky;top:0;background:var(--water);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;z-index:1}
+.dlg-head h2{margin:0;font-size:1.1rem}
+.dlg-head button{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:8px;min-width:40px;min-height:40px;cursor:pointer}
+.dlg-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+.dlg-foot{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px}
+fieldset{border:1px solid var(--line);border-radius:10px;margin:0;padding:12px;min-width:0}
+legend{font-weight:700;padding:0 6px;font-size:.95rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:.86rem;color:var(--muted);min-width:0}
+label.f input,label.f select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;color:var(--ink);width:100%}
+input.ltr{direction:ltr;text-align:right;font-variant-numeric:tabular-nums}
+.photo-pick{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.photo-pick img,.photo-pick .ph{width:80px;height:103px;border-radius:8px;border:1px solid var(--line);object-fit:cover;background:var(--bg)}
+label.chk{display:flex;gap:8px;align-items:center;font-size:.92rem;min-height:36px}
+label.chk input{width:20px;height:20px;accent-color:var(--lane)}
+.sample{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:1.3rem;text-align:center}
+.stamp-prev{width:96px;height:96px;border-radius:8px;border:1px solid var(--line);background:#fff;object-fit:contain}
+input[type=color]{padding:2px!important;height:44px}
+.hint{font-size:.82rem;color:var(--muted);margin:0}
+.preview{width:100%;height:auto;border:1px solid var(--line);border-radius:8px;display:block}
+ol.steps{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:12px}
+#toast{position:fixed;inset-inline:16px;bottom:16px;margin:0 auto;max-width:520px;background:var(--water);color:#fff;padding:12px 16px;border-radius:10px;
+  box-shadow:0 6px 24px rgba(0,0,0,.25);display:none;z-index:50;font-size:.92rem}
+#toast.show{display:block}
+footer{color:var(--muted);font-size:.82rem;padding:0 0 32px}
+@media (max-width:420px){.stats{grid-template-columns:repeat(3,1fr)}.stat b{font-size:1.25rem}.btn{flex:1 1 auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>استمارات انتقال السباحين</h1>
+    <p>أدخل بيانات السباح أو ارفع ملف الإكسيل، والتطبيق يعبئ استمارة الانتقال ويخرجها PDF جاهزة للطباعة والتوقيع.</p>
+    <span class="season">موسم 1 أكتوبر 2026 إلى 30 يوليو 2027</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="panel" aria-label="ملخص">
+    <div class="stats">
+      <div class="stat"><b id="st-total">0</b><span>سباحون</span></div>
+      <div class="stat"><b id="st-ok">0</b><span>بيانات مكتملة</span></div>
+      <div class="stat"><b id="st-bad">0</b><span>بيانات ناقصة</span></div>
+    </div>
+    <div class="actions">
+      <button class="btn water" id="btn-add" type="button">إضافة سباح</button>
+      <button class="btn" id="btn-import" type="button">استيراد من إكسيل</button>
+      <button class="btn" id="btn-settings" type="button">الإعدادات</button>
+      <button class="btn primary" id="btn-all" type="button">إنشاء كل الاستمارات في PDF واحد</button>
+    </div>
+    <p class="note">البيانات والصور تبقى على هذا الجهاز فقط ولا تُرسل إلى أي خادم. التوقيع والبصمة والأختام تُستوفى ورقيًا بعد الطباعة.</p>
+  </section>
+
+  <section class="list" id="list" aria-label="قائمة السباحين"></section>
+
+  <footer>
+    أداة مساعدة غير رسمية لتعبئة استمارة الاتحاد السعودي للسباحة. تُرسل الاستمارة بعد استيفاء التواقيع إلى secretariat.tec@saudiswimming.sa
+  </footer>
+</main>
+
+<!-- Swimmer editor -->
+<dialog id="dlg-edit" aria-labelledby="edit-title">
+  <form id="form-edit" novalidate>
+    <div class="dlg-head"><h2 id="edit-title">بيانات السباح</h2><button type="button" data-close aria-label="إغلاق">✕</button></div>
+    <div class="dlg-body">
+      <fieldset><legend>معلومات اللاعب</legend>
+        <div class="grid">
+          <label class="f">اللعبة<select id="f-sport"><option>سباحة</option><option>غطس</option><option>كرة ماء</option></select></label>
+          <label class="f">الاسم الرباعي<input id="f-name" autocomplete="off"></label>
+          <label class="f">تاريخ الميلاد (ميلادي)<input id="f-dob" type="date"></label>
+          <label class="f">تاريخ الميلاد (هجري)<input id="f-hijri" class="ltr" placeholder="1433/04/22" inputmode="numeric"></label>
+          <label class="f">الجنسية<input id="f-nat" autocomplete="off"></label>
+          <label class="f">رقم الهوية (10 أرقام)<input id="f-pid" class="ltr" inputmode="numeric" maxlength="10"></label>
+          <label class="f">رقم جوال المستفيد<input id="f-mob" class="ltr" inputmode="numeric" maxlength="10" placeholder="05XXXXXXXX"></label>
+          <label class="f">رقم اللاعب (إن وجد)<input id="f-pno" class="ltr" inputmode="numeric"></label>
+          <label class="f">اسم النادي السابق<input id="f-clubOld" autocomplete="off"></label>
+          <label class="f">اسم النادي المراد الانتقال إليه<input id="f-clubNew" autocomplete="off"></label>
+        </div>
+        <p class="hint" id="age-hint"></p>
+      </fieldset>
+      <fieldset id="fs-guardian"><legend>ولي الأمر (لمن هم دون 18 سنة)</legend>
+        <div class="grid">
+          <label class="f">اسم ولي الأمر<input id="f-gName" autocomplete="off"></label>
+          <label class="f">رقم هوية ولي الأمر<input id="f-gId" class="ltr" inputmode="numeric" maxlength="10"></label>
+          <label class="f">رقم جوال ولي الأمر<input id="f-gMob" class="ltr" inputmode="numeric" maxlength="10" placeholder="05XXXXXXXX"></label>
+        </div>
+      </fieldset>
+      <fieldset><legend>الصورة الشخصية</legend>
+        <div class="photo-pick">
+          <div class="ph" id="f-photo-ph"></div>
+          <img id="f-photo-img" alt="صورة السباح" hidden>
+          <div>
+            <label class="btn small" for="f-photo" style="display:inline-flex;align-items:center">اختيار صورة أو التقاطها</label>
+            <input id="f-photo" type="file" accept="image/*" hidden>
+            <p class="hint">حديثة بخلفية بيضاء. تُقص تلقائيًا إلى مقاس الصورة الشخصية.</p>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn water" type="submit">حفظ</button>
+      <button class="btn" type="button" data-close>إلغاء</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Settings -->
+<dialog id="dlg-settings" aria-labelledby="set-title">
+  <form id="form-settings" novalidate>
+    <div class="dlg-head"><h2 id="set-title">الإعدادات</h2><button type="button" data-close aria-label="إغلاق">✕</button></div>
+    <div class="dlg-body">
+      <fieldset><legend>الكتابة على الاستمارة</legend>
+        <div class="grid">
+          <label class="f">الخط<select id="s-font"></select></label>
+          <label class="f">اللون<input id="s-color" type="color" value="#000000"></label>
+        </div>
+        <p class="sample" id="s-sample" style="margin:10px 0 0">نادي حلم الابطال 0551234567</p>
+      </fieldset>
+      <fieldset><legend>القيم الافتراضية للأندية</legend>
+        <div class="grid">
+          <label class="f">اسم النادي السابق<input id="s-clubOld" autocomplete="off"></label>
+          <label class="f">اسم النادي المراد الانتقال إليه<input id="s-clubNew" autocomplete="off"></label>
+        </div>
+        <p class="hint">تُعبأ تلقائيًا عند إضافة سباح جديد، وعند الاستيراد إذا كانت الخانة فارغة في الإكسيل.</p>
+      </fieldset>
+      <fieldset><legend>مصادقة النادي المراد الانتقال إليه</legend>
+        <label class="chk"><input id="s-dateOn" type="checkbox">كتابة تاريخ المصادقة (ميلادي وهجري)</label>
+        <label class="f" style="max-width:260px">التاريخ (اتركه فارغًا لتاريخ يوم الإنشاء)<input id="s-date" type="date"></label>
+        <label class="chk" style="margin-top:8px"><input id="s-stampOn" type="checkbox">وضع ختم النادي على الاستمارة</label>
+        <div class="photo-pick">
+          <img class="stamp-prev" id="s-stamp-img" alt="ختم النادي" hidden>
+          <div>
+            <label class="btn small" for="s-stamp" style="display:inline-flex;align-items:center">رفع صورة الختم</label>
+            <button class="btn small danger" id="s-stamp-del" type="button">إزالة الختم</button>
+            <input id="s-stamp" type="file" accept="image/*" hidden>
+            <p class="hint">صورة بخلفية بيضاء. تُحفظ على هذا الجهاز فقط ولا تُرفع مع كود التطبيق. توقيع الرئيس التنفيذي يبقى يدويًا.</p>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn water" type="submit">حفظ الإعدادات</button>
+      <button class="btn" type="button" data-close>إلغاء</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Excel import -->
+<dialog id="dlg-import" aria-labelledby="imp-title">
+  <div class="dlg-head"><h2 id="imp-title">استيراد من إكسيل</h2><button type="button" data-close aria-label="إغلاق">✕</button></div>
+  <div class="dlg-body">
+    <ol class="steps">
+      <li>ملف الإكسيل المعبأ (صف لكل سباح)
+        <label class="f"><input id="imp-xlsx" type="file" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+        <button class="btn small" id="btn-tpl" type="button" style="margin-top:6px">تنزيل قالب الإكسيل الفارغ</button>
+      </li>
+      <li>صور السباحين (اختيار متعدد). تُربط بكل سباح حسب اسم الملف المكتوب في عمود الصورة.
+        <label class="f"><input id="imp-photos" type="file" accept="image/*" multiple></label>
+      </li>
+    </ol>
+    <p class="hint" id="imp-status"></p>
+  </div>
+  <div class="dlg-foot">
+    <button class="btn water" id="imp-add" type="button">إضافة إلى القائمة</button>
+    <button class="btn" id="imp-replace" type="button">استبدال القائمة الحالية</button>
+  </div>
+</dialog>
+
+<!-- Preview -->
+<dialog id="dlg-prev" aria-labelledby="prev-title">
+  <div class="dlg-head"><h2 id="prev-title">معاينة الاستمارة</h2><button type="button" data-close aria-label="إغلاق">✕</button></div>
+  <div class="dlg-body"><img class="preview" id="prev-img" alt="معاينة الاستمارة المعبأة"></div>
+  <div class="dlg-foot">
+    <button class="btn primary" id="prev-dl" type="button">تنزيل PDF</button>
+    <button class="btn" id="prev-share" type="button" hidden>مشاركة</button>
+  </div>
+</dialog>
+
+<!-- Confirm -->
+<dialog id="dlg-confirm">
+  <div class="dlg-body"><p id="confirm-text" style="margin:0"></p></div>
+  <div class="dlg-foot"><button class="btn danger" id="confirm-yes" type="button">حذف</button><button class="btn" type="button" data-close>تراجع</button></div>
+</dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="xlsx.mini.min.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const KEY = "swim-transfer-v1";
+const FIELDS = ["sport","name","dob","hijri","nat","pid","mob","pno","clubOld","clubNew","gName","gId","gMob"];
+const SKEY = "swim-transfer-settings-v1";
+const FONTS = {plex: ["IBM Plex Sans Arabic", '"IBM Plex Sans Arabic"'], cairo: ["Cairo", '"Cairo"'], tajawal: ["Tajawal", '"Tajawal"'], kufi: ["Noto Kufi Arabic", '"Noto Kufi Arabic"'],
+  naskh: ["Noto Naskh Arabic (نسخ)", '"Noto Naskh Arabic"'], amiri: ["Amiri (نسخ كلاسيكي)", '"Amiri"'], system: ["خط الجهاز", "Tahoma"]};
+const FALLBACK = ',"Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif';
+let settings = {font: "plex", color: "#000000", clubOld: "نادي سما المواهب الرياضي", clubNew: "نادي حلم الابطال", dateOn: true, date: "", stampOn: true, stamp: ""};
+try { Object.assign(settings, JSON.parse(localStorage.getItem(SKEY) || "{}")); } catch (e) {}
+if (!FONTS[settings.font]) settings.font = "plex";
+const saveSettings = () => { try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch (e) {} };
+const todayIso = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`; };
+let swimmers = [], editingId = null, editPhoto = "", previewOf = null, downloads = null;
+const inHost = !!(window.claude && typeof window.claude.use === "function");
+
+/* ---------- helpers ---------- */
+const clean = v => v == null ? "" : String(v).replace(/\s+/g, " ").trim();
+const digitsOnly = v => clean(v).replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/\D/g, "");
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+function toast(msg, ms = 4200){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), ms); }
+function el(tag, attrs = {}, ...kids){ const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) { if (k === "class") e.className = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else if (v !== false && v != null) e.setAttribute(k, v); }
+  for (const k of kids) if (k != null) e.append(k); return e; }
+function parseDob(s){ const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], 12)) : null; }
+function ageOf(s){ const d = parseDob(s); if (!d) return null; const n = new Date();
+  let a = n.getFullYear() - d.getUTCFullYear(); if (n.getMonth() < d.getUTCMonth() || (n.getMonth() === d.getUTCMonth() && n.getDate() < d.getUTCDate())) a--; return a; }
+function toHijri(s){ const d = parseDob(s); if (!d) return "";
+  try { const p = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura-nu-latn", {year:"numeric", month:"2-digit", day:"2-digit", timeZone:"UTC"}).formatToParts(d);
+    const g = t => (p.find(x => x.type === t) || {}).value || ""; const y = g("year"), m = g("month"), dd = g("day");
+    return y && +y < 1700 ? `${y}/${m.padStart(2,"0")}/${dd.padStart(2,"0")}` : ""; } catch (e) { return ""; } }
+function normHijri(v){ const p = (digitsOnly(String(v).replace(/[\/\-.]/g, " ").replace(/\s+/g, "x").replace(/x/g, "/")) , String(v).match(/[\d٠-٩]+/g) || []).map(digitsOnly);
+  if (p.length !== 3) return ""; const [a, b, c] = p[0].length === 4 ? p : p.slice().reverse(); return `${a}/${b.padStart(2,"0")}/${c.padStart(2,"0")}`; }
+
+/* ---------- validation ---------- */
+function issuesOf(s){
+  const err = [], warn = [], age = ageOf(s.dob), minor = age != null && age < 18;
+  if (!s.name) err.push("الاسم الرباعي مطلوب");
+  if (!s.dob) err.push("تاريخ الميلاد مطلوب");
+  if (!s.nat) err.push("الجنسية مطلوبة");
+  if (!/^\d{10}$/.test(s.pid)) err.push("رقم الهوية يجب أن يكون 10 أرقام");
+  if (!/^05\d{8}$/.test(s.mob)) err.push("رقم الجوال 10 أرقام يبدأ بـ 05");
+  if (!s.clubOld) err.push("اسم النادي السابق مطلوب");
+  if (!s.clubNew) err.push("اسم النادي المراد الانتقال إليه مطلوب");
+  if (minor) {
+    if (!s.gName) err.push("اسم ولي الأمر مطلوب (دون 18 سنة)");
+    if (!/^\d{10}$/.test(s.gId)) err.push("رقم هوية ولي الأمر يجب أن يكون 10 أرقام");
+    if (!/^05\d{8}$/.test(s.gMob)) err.push("رقم جوال ولي الأمر 10 أرقام يبدأ بـ 05");
+  }
+  if (!s.photo) err.push(s.photoName ? `الصورة غير مرفوعة (${s.photoName})` : "الصورة الشخصية مطلوبة");
+  if (s.pid && swimmers.some(o => o.id !== s.id && o.pid === s.pid)) warn.push("رقم الهوية مكرر مع سباح آخر");
+  const calc = toHijri(s.dob);
+  if (s.hijri && calc && s.hijri !== calc) warn.push(`التاريخ الهجري المدخل (${s.hijri}) لا يطابق الميلادي؛ المقابل ${calc}`);
+  if (!s.pno) warn.push("رقم اللاعب فارغ");
+  return {err, warn, age, minor};
+}
+
+/* ---------- storage ---------- */
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(swimmers)); }
+  catch (e) { try { localStorage.setItem(KEY, JSON.stringify(swimmers.map(s => ({...s, photo: ""})))); } catch (e2) {} } }
+function load(){ try { const v = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(v)) return v; } catch (e) {} return null; }
+function exampleSwimmer(){ return {id: uid(), example: true, sport: "سباحة", name: "سارة أحمد محمد العتيبي", dob: "2012-03-15", hijri: "1433/04/22", nat: "سعودية",
+  pid: "1012345678", mob: "0551234567", pno: "", clubOld: settings.clubOld, clubNew: settings.clubNew, gName: "أحمد محمد عبدالله العتيبي", gId: "1087654321", gMob: "0559876543", photo: placeholderPhoto(), photoName: ""}; }
+function placeholderPhoto(){ const c = document.createElement("canvas"); c.width = 413; c.height = 531; const g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, 413, 531); g.fillStyle = "#7FA9BC"; g.beginPath(); g.arc(206, 170, 72, 0, 7); g.fill();
+  g.beginPath(); g.ellipse(206, 470, 150, 190, 0, Math.PI, 0); g.fill(); g.fillStyle = "#fff"; g.fillRect(0, 460, 413, 80);
+  g.fillStyle = "#666"; g.font = "bold 34px sans-serif"; g.textAlign = "center"; g.fillText("SAMPLE", 206, 506); return c.toDataURL("image/jpeg", .85); }
+
+/* ---------- list ---------- */
+function render(){
+  const list = $("list"); list.replaceChildren(); let ok = 0;
+  swimmers.forEach((s, i) => {
+    const q = issuesOf(s); if (!q.err.length) ok++;
+    const thumb = s.photo ? el("img", {class: "thumb", src: s.photo, alt: ""}) : el("div", {class: "thumb"}, "بدون صورة");
+    const pills = el("div", {class: "pills"},
+      el("span", {class: "pill " + (q.err.length ? "bad" : "ok")}, q.err.length ? `ناقصة (${q.err.length})` : "مكتملة"),
+      q.age != null ? el("span", {class: "pill info"}, `${q.age} سنة · يوقّع ${q.minor ? "ولي الأمر" : "اللاعب"}`) : null,
+      s.example ? el("span", {class: "pill warn"}, "مثال توضيحي") : null);
+    const iss = el("ul", {class: "issues"}, ...q.err.map(t => el("li", {}, t)), ...q.warn.map(t => el("li", {class: "w"}, t)));
+    const btns = el("div", {class: "rowbtns"},
+      el("button", {class: "btn small primary", type: "button", onclick: () => openPreview(s.id)}, "معاينة وتنزيل"),
+      el("button", {class: "btn small", type: "button", onclick: () => openEdit(s.id)}, "تعديل"),
+      el("button", {class: "btn small danger", type: "button", onclick: () => askDelete(s.id)}, "حذف"));
+    list.append(el("article", {class: "row " + (q.err.length ? "bad" : "ok")}, thumb,
+      el("div", {}, el("h3", {}, `${i + 1}. ${s.name || "بدون اسم"}`),
+        el("div", {class: "meta"}, [s.sport, s.nat, s.clubOld && s.clubNew ? `${s.clubOld} ← ${s.clubNew}` : ""].filter(Boolean).join(" · ")),
+        pills, (q.err.length || q.warn.length) ? iss : null, btns)));
+  });
+  if (!swimmers.length) list.append(el("div", {class: "panel empty"}, "لا يوجد سباحون بعد. أضف سباحًا أو استورد ملف الإكسيل."));
+  $("st-total").textContent = swimmers.length; $("st-ok").textContent = ok; $("st-bad").textContent = swimmers.length - ok;
+  $("btn-all").disabled = !swimmers.length;
+}
+
+/* ---------- editor ---------- */
+function openEdit(id){
+  editingId = id; const s = swimmers.find(x => x.id === id) || {sport: "سباحة", clubOld: settings.clubOld, clubNew: settings.clubNew};
+  $("edit-title").textContent = id ? "تعديل بيانات السباح" : "إضافة سباح";
+  FIELDS.forEach(f => $("f-" + f).value = s[f] || (f === "sport" ? "سباحة" : ""));
+  editPhoto = s.photo || ""; showEditPhoto(); $("f-photo").value = ""; updateAgeHint(); $("dlg-edit").showModal();
+}
+function showEditPhoto(){ $("f-photo-img").hidden = !editPhoto; $("f-photo-ph").hidden = !!editPhoto; if (editPhoto) $("f-photo-img").src = editPhoto; }
+function updateAgeHint(){ const a = ageOf($("f-dob").value); const minor = a != null && a < 18;
+  $("age-hint").textContent = a == null ? "" : `العمر ${a} سنة. يوقّع على الموافقة: ${minor ? "ولي الأمر" : "اللاعب نفسه"}.`;
+  $("fs-guardian").hidden = a != null && !minor; }
+$("f-dob").addEventListener("change", () => { const h = toHijri($("f-dob").value); if (h) $("f-hijri").value = h; updateAgeHint(); });
+$("f-photo").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return;
+  try { editPhoto = await fileToPhoto(f); showEditPhoto(); } catch (err) { toast("تعذّر قراءة الصورة. جرّب صورة JPG أو PNG."); } });
+$("form-edit").addEventListener("submit", e => { e.preventDefault();
+  const s = swimmers.find(x => x.id === editingId) || {id: uid(), photoName: ""};
+  s.sport = $("f-sport").value; s.name = clean($("f-name").value); s.dob = $("f-dob").value; s.hijri = normHijri($("f-hijri").value) || toHijri(s.dob);
+  s.nat = clean($("f-nat").value); s.clubOld = clean($("f-clubOld").value); s.clubNew = clean($("f-clubNew").value); s.gName = clean($("f-gName").value);
+  ["pid","mob","pno","gId","gMob"].forEach(f => s[f] = digitsOnly($("f-" + f).value));
+  s.photo = editPhoto; delete s.example;
+  if (!s.name) { toast("اكتب الاسم الرباعي أولًا."); $("f-name").focus(); return; }
+  if (!swimmers.includes(s)) swimmers.push(s);
+  save(); render(); $("dlg-edit").close(); const n = issuesOf(s).err.length; toast(n ? `حُفظ. ما زال ${n} حقل ناقصًا.` : "حُفظ. البيانات مكتملة."); });
+let pendingDelete = null;
+function askDelete(id){ pendingDelete = id; const s = swimmers.find(x => x.id === id); $("confirm-text").textContent = `حذف «${s.name || "بدون اسم"}» من القائمة؟`; $("dlg-confirm").showModal(); }
+$("confirm-yes").addEventListener("click", () => { swimmers = swimmers.filter(x => x.id !== pendingDelete); save(); render(); $("dlg-confirm").close(); });
+
+/* ---------- photos ---------- */
+function loadImage(src){ return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; }); }
+async function fileToPhoto(file){ const url = URL.createObjectURL(file);
+  try { const im = await loadImage(url), W = 413, H = 531, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+    g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); const k = Math.max(W / im.width, H / im.height), w = im.width * k, h = im.height * k;
+    g.drawImage(im, (W - w) / 2, (H - h) / 2, w, h); return c.toDataURL("image/jpeg", .88); } finally { URL.revokeObjectURL(url); } }
+
+/* ---------- Excel import ---------- */
+const COLS = [["gName","اسم ولي"],["gId","هوية ولي"],["gMob","جوال ولي"],["sport","اللعبة"],["name","الاسم"],["dob","ميلادي"],["hijri","هجري"],["nat","الجنسية"],
+  ["pid","رقم الهوية"],["mob","جوال"],["pno","رقم اللاعب"],["clubOld","السابق"],["clubNew","المراد"],["photoName","الصورة"]];
+function cellDate(v){ if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === "number" && v > 3000) return new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 864e5).toISOString().slice(0, 10);
+  const m = /(\d{4})\D(\d{1,2})\D(\d{1,2})/.exec(clean(v)) ; if (m) return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+  const r = /(\d{1,2})\D(\d{1,2})\D(\d{4})/.exec(clean(v)); return r ? `${r[3]}-${r[2].padStart(2,"0")}-${r[1].padStart(2,"0")}` : ""; }
+function parseWorkbook(buf){
+  const wb = XLSX.read(buf, {type: "array"}), rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, raw: true, defval: ""});
+  const hi = rows.findIndex(r => r.some(c => clean(c).includes("الاسم الرباعي")));
+  if (hi < 0) throw new Error("لم أجد صف العناوين. استخدم قالب الإكسيل المرفق.");
+  const map = {}; rows[hi].forEach((h, i) => { h = clean(h); const hit = COLS.find(([k, w]) => h.includes(w) && !(k in map)); if (hit) map[hit[0]] = i; });
+  const out = [];
+  for (const r of rows.slice(hi + 1)) { const g = k => k in map ? r[map[k]] : ""; const name = clean(g("name"));
+    if (!name || name.includes("(مثال")) continue;
+    const dob = cellDate(g("dob"));
+    out.push({id: uid(), sport: ["سباحة","غطس","كرة ماء"].includes(clean(g("sport"))) ? clean(g("sport")) : "سباحة", name, dob,
+      hijri: normHijri(g("hijri")) || toHijri(dob), nat: clean(g("nat")), pid: digitsOnly(g("pid")), mob: fixMob(g("mob")), pno: digitsOnly(g("pno")),
+      clubOld: clean(g("clubOld")) || settings.clubOld, clubNew: clean(g("clubNew")) || settings.clubNew, gName: clean(g("gName")), gId: digitsOnly(g("gId")), gMob: fixMob(g("gMob")),
+      photo: "", photoName: clean(g("photoName")).split(/[\\/]/).pop()}); }
+  return out;
+}
+function fixMob(v){ let d = digitsOnly(v); if (/^5\d{8}$/.test(d)) d = "0" + d; if (/^9665\d{8}$/.test(d)) d = "0" + d.slice(3); return d; }
+async function doImport(replace){
+  const xf = $("imp-xlsx").files[0]; if (!xf) { $("imp-status").textContent = "اختر ملف الإكسيل أولًا."; return; }
+  let rows; try { rows = parseWorkbook(new Uint8Array(await xf.arrayBuffer())); } catch (e) { $("imp-status").textContent = e.message || "تعذّرت قراءة الملف."; return; }
+  if (!rows.length) { $("imp-status").textContent = "الملف لا يحتوي صفوف سباحين."; return; }
+  const photos = {}; for (const f of $("imp-photos").files) { const n = f.name.toLowerCase(); photos[n] = f; photos[n.replace(/\.[^.]+$/, "")] = f; }
+  let matched = 0;
+  for (const s of rows) { const n = s.photoName.toLowerCase(), f = photos[n] || photos[n.replace(/\.[^.]+$/, "")];
+    if (f) { try { s.photo = await fileToPhoto(f); matched++; } catch (e) {} } }
+  swimmers = replace ? rows : swimmers.filter(s => !s.example).concat(rows);
+  save(); render(); $("dlg-import").close(); $("imp-xlsx").value = ""; $("imp-photos").value = "";
+  toast(`استُورد ${rows.length} سباح، ورُبطت ${matched} صورة.` + (matched < rows.length ? " أضف الصور الناقصة من زر تعديل." : ""), 6000);
+}
+$("imp-add").addEventListener("click", () => doImport(false));
+$("imp-replace").addEventListener("click", () => doImport(true));
+function simpleTemplate(){ const head = ["م","اللعبة","الاسم الرباعي","تاريخ الميلاد (ميلادي)","تاريخ الميلاد (هجري) اختياري","الجنسية","رقم الهوية (10 أرقام)","رقم جوال المستفيد","رقم اللاعب (إن وجد)","اسم النادي السابق","اسم النادي المراد الانتقال إليه","اسم ولي الأمر (لمن دون 18)","رقم هوية ولي الأمر","رقم جوال ولي الأمر","اسم ملف الصورة الشخصية"];
+  const ws = XLSX.utils.aoa_to_sheet([head]); ws["!cols"] = head.map(h => ({wch: Math.max(14, h.length + 2)})); ws["!views"] = [{RTL: true}];
+  const wb = XLSX.utils.book_new(); wb.Workbook = {Views: [{RTL: true}]}; XLSX.utils.book_append_sheet(wb, ws, "بيانات السباحين");
+  return new Blob([XLSX.write(wb, {type: "array", bookType: "xlsx"})]); }
+$("btn-tpl").addEventListener("click", async () => { let b = null;
+  try { const r = await fetch("players-template.xlsx"); if (r.ok) b = await r.blob(); } catch (e) {}
+  try { await saveFile(b || simpleTemplate(), "قالب_بيانات_السباحين.xlsx"); } catch (e) { toast("تعذّر تنزيل القالب."); } });
+
+/* ---------- form rendering (coordinates in PDF points on the official A4 form) ---------- */
+const S = 200 / 72, PW = 1654, PH = 2339;
+const STAMP_BOX = [342,580,398,636];
+const ID1 = [41.5,61.5,81.0,100.8,120.6,140.2,160.0,179.8,199.5,219.5,239.0], ID2 = [272.6,291.5,310.6,329.5,348.5,367.5,386.4,405.5,424.2,443.2,462.2];
+const SPORT = {"سباحة": [377,98,397,118], "غطس": [311,98,332,118], "كرة ماء": [250,98,271,118]};
+let tplPromise = null; const template = () => tplPromise || (tplPromise = loadImage("template.png"));
+async function drawForm(s){
+  const tpl = await template(), fam = FONTS[settings.font][1] + FALLBACK, INK = settings.color || "#000000";
+  try { await document.fonts.load(`500 20px ${FONTS[settings.font][1]}`, "نادي 0123456789"); } catch (e) {}
+  const c = document.createElement("canvas"); c.width = PW; c.height = PH; const g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, PW, PH); g.drawImage(tpl, 0, 0, PW, PH); g.fillStyle = INK; g.strokeStyle = INK; g.textAlign = "center"; g.textBaseline = "middle";
+  const put = (b, t, size = 11, pad = 6) => { t = clean(t); if (!t) return; g.direction = /[؀-ۿ]/.test(t) ? "rtl" : "ltr";
+    const maxW = (b[2] - b[0] - 2 * pad) * S; do { g.font = `500 ${size * S}px ${fam}`; size -= .5; } while (g.measureText(t).width > maxW && size > 6);
+    g.fillText(t, (b[0] + b[2]) / 2 * S, (b[1] + b[3]) / 2 * S + 1); };
+  const boxes = (xs, y0, y1, str) => [...str].slice(0, 10).forEach((ch, i) => put([xs[i], y0, xs[i + 1], y1], ch, 12, 1));
+  const sp = SPORT[s.sport]; if (sp) { const cx = (sp[0] + sp[2]) / 2 * S, cy = (sp[1] + sp[3]) / 2 * S; g.lineWidth = 2 * S; g.lineCap = g.lineJoin = "round";
+    g.beginPath(); g.moveTo(cx - 5 * S, cy); g.lineTo(cx - 1.5 * S, cy + 4 * S); g.lineTo(cx + 6 * S, cy - 5 * S); g.stroke(); }
+  put([227,219,489,248], s.name, 12);
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.dob || "");
+  if (d) { put([56,216,90,232], d[1], 10, 1); put([93,216,121,232], d[2], 10, 1); put([124,216,144,232], d[3], 10, 1); }
+  const h = (s.hijri || toHijri(s.dob)).split("/");
+  if (h.length === 3) { put([56,238,91,254], h[0], 10, 1); put([95,238,122,254], h[1], 10, 1); put([125,238,145,254], h[2], 10, 1); }
+  put([320,250,490,278], s.nat); boxes(ID1, 259, 280.2, s.pid); put([319,282,490,310], s.mob); put([55,284,237,313], s.pno);
+  put([319,314,490,342], s.clubOld); put([56,315,240,344], s.clubNew);
+  const minor = issuesOf(s).minor, sg = minor ? [s.gName, s.gId, s.gMob] : [s.name, s.pid, s.mob];
+  put([270,381,469,409], sg[0]); boxes(ID2, 413.8, 434.8, sg[1]); put([275,443,473,471], sg[2]);
+  if (settings.dateOn) { const iso = settings.date || todayIso(), dd = iso.split("-"), hh = toHijri(iso).split("/");
+    put([292,559,334,577], dd[0], 10, 1); put([337,559,365,577], dd[1], 10, 1); put([368,559,389,577], dd[2], 10, 1);
+    if (hh.length === 3) { put([150,559,191,577], hh[0], 10, 1); put([194,559,222,577], hh[1], 10, 1); put([225,559,246,577], hh[2], 10, 1); } }
+  if (settings.stampOn && settings.stamp) { try { const im = await loadImage(settings.stamp), b = STAMP_BOX, bw = (b[2] - b[0]) * S, bh = (b[3] - b[1]) * S,
+      k = Math.min(bw / im.width, bh / im.height), w = im.width * k, h2 = im.height * k;
+    g.save(); g.globalCompositeOperation = "multiply"; g.drawImage(im, b[0] * S + (bw - w) / 2, b[1] * S + (bh - h2) / 2, w, h2); g.restore(); } catch (e) {} }
+  if (s.photo) { try { const im = await loadImage(s.photo), bx = [44,42,137,164], bw = (bx[2] - bx[0]) * S, bh = (bx[3] - bx[1]) * S;
+    g.fillStyle = "#fff"; g.fillRect(bx[0] * S, bx[1] * S, bw, bh); const k = Math.min(bw / im.width, bh / im.height), w = im.width * k, hh = im.height * k;
+    g.drawImage(im, bx[0] * S + (bw - w) / 2, bx[1] * S + (bh - hh) / 2, w, hh); } catch (e) {} }
+  return c;
+}
+const canvasJpeg = c => new Promise(res => c.toBlob(async b => res(new Uint8Array(await b.arrayBuffer())), "image/jpeg", .92));
+
+/* ---------- minimal PDF writer: one A4 page per JPEG ---------- */
+function buildPdf(jpegs){
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const push = x => { const b = typeof x === "string" ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (n, head, stream) => { offs[n] = len; push(`${n} 0 obj\n${head}\n`); if (stream) { push("stream\n"); push(stream); push("\nendstream\n"); } push("endobj\n"); };
+  push("%PDF-1.4\n%âãÏÓ\n");
+  const n = jpegs.length, kids = jpegs.map((_, i) => `${3 + i * 3} 0 R`).join(" ");
+  obj(1, "<< /Type /Catalog /Pages 2 0 R >>"); obj(2, `<< /Type /Pages /Count ${n} /Kids [${kids}] >>`);
+  jpegs.forEach((j, i) => { const p = 3 + i * 3, content = enc.encode("q 595.32 0 0 841.92 0 0 cm /Im0 Do Q");
+    obj(p, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.32 841.92] /Resources << /XObject << /Im0 ${p + 2} 0 R >> >> /Contents ${p + 1} 0 R >>`);
+    obj(p + 1, `<< /Length ${content.length} >>`, content);
+    obj(p + 2, `<< /Type /XObject /Subtype /Image /Width ${PW} /Height ${PH} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${j.length} >>`, j); });
+  const total = 3 + n * 3, xref = len; let x = `xref\n0 ${total}\n0000000000 65535 f \n`;
+  for (let i = 1; i < total; i++) x += String(offs[i]).padStart(10, "0") + " 00000 n \n";
+  push(x + `trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, {type: "application/pdf"});
+}
+const fileName = (s, i) => `استمارة_انتقال_${String(i + 1).padStart(2, "0")}_${(s.name || "سباح").replace(/\s+/g, "_")}.pdf`;
+
+/* ---------- saving and sharing ---------- */
+async function saveFile(blob, filename){
+  if (inHost) { if (!downloads) downloads = await window.claude.use("downloads");
+    if (!downloads) { toast("التنزيل غير متاح في هذا العرض. افتح التطبيق في المتصفح."); return false; }
+    try { await downloads.save({filename, data: blob}); return true; }
+    catch (e) { const c = e && e.code; toast(c === "declined" ? "أُلغي التنزيل." : c === "rate_limited" ? "انتظر لحظة ثم أعد المحاولة." : c === "host_unavailable" ? "هذا التطبيق لا يحفظ الملفات. افتح الصفحة في المتصفح." : "تعذّر التنزيل."); return false; } }
+  const a = el("a", {href: URL.createObjectURL(blob), download: filename}); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000); return true;
+}
+function canShareFiles(){ if (inHost || !navigator.canShare) return false; try { return navigator.canShare({files: [new File([new Blob(["x"])], "a.pdf", {type: "application/pdf"})]}); } catch (e) { return false; } }
+
+/* ---------- preview / generate ---------- */
+let previewBlob = null;
+async function openPreview(id){ const s = swimmers.find(x => x.id === id); previewOf = s; previewBlob = null;
+  $("prev-title").textContent = `معاينة: ${s.name}`; $("prev-img").removeAttribute("src"); $("prev-share").hidden = !canShareFiles(); $("dlg-prev").showModal();
+  try { const c = await drawForm(s), j = await canvasJpeg(c); previewBlob = buildPdf([j]); $("prev-img").src = URL.createObjectURL(new Blob([j], {type: "image/jpeg"})); }
+  catch (e) { toast("تعذّر إنشاء الاستمارة."); } }
+$("prev-dl").addEventListener("click", async () => { if (previewBlob && await saveFile(previewBlob, fileName(previewOf, swimmers.indexOf(previewOf)))) toast("حُفظت الاستمارة."); });
+$("prev-share").addEventListener("click", async () => { if (!previewBlob) return; try { await navigator.share({files: [new File([previewBlob], fileName(previewOf, swimmers.indexOf(previewOf)), {type: "application/pdf"})], title: "استمارة انتقال"}); } catch (e) {} });
+$("btn-all").addEventListener("click", async () => { const b = $("btn-all"), label = b.textContent; b.disabled = true;
+  try { const pages = []; for (let i = 0; i < swimmers.length; i++) { b.textContent = `جارٍ الإنشاء ${i + 1} من ${swimmers.length}`; pages.push(await canvasJpeg(await drawForm(swimmers[i]))); }
+    const bad = swimmers.filter(s => issuesOf(s).err.length).length;
+    if (await saveFile(buildPdf(pages), "استمارات_الانتقال_مجمعة.pdf")) toast(`أُنشئت ${pages.length} استمارة.` + (bad ? ` تنبيه: ${bad} منها بياناتها ناقصة.` : ""), 6000); }
+  catch (e) { toast("تعذّر إنشاء الملف."); } finally { b.textContent = label; b.disabled = !swimmers.length; } });
+
+/* ---------- settings ---------- */
+let editStamp = "";
+async function fileToStamp(file){ const url = URL.createObjectURL(file);
+  try { const im = await loadImage(url), k = Math.min(1, 700 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); return c.toDataURL("image/jpeg", .9); } finally { URL.revokeObjectURL(url); } }
+function showStamp(){ $("s-stamp-img").hidden = !editStamp; $("s-stamp-del").hidden = !editStamp; if (editStamp) $("s-stamp-img").src = editStamp; }
+function showSample(){ const p = $("s-sample"); p.style.fontFamily = FONTS[$("s-font").value][1] + FALLBACK; p.style.color = $("s-color").value; }
+Object.entries(FONTS).forEach(([k, v]) => $("s-font").append(el("option", {value: k}, v[0])));
+$("btn-settings").addEventListener("click", () => { $("s-font").value = settings.font; $("s-color").value = settings.color; $("s-clubOld").value = settings.clubOld; $("s-clubNew").value = settings.clubNew;
+  $("s-dateOn").checked = settings.dateOn; $("s-date").value = settings.date; $("s-stampOn").checked = settings.stampOn; editStamp = settings.stamp; $("s-stamp").value = ""; showStamp(); showSample(); $("dlg-settings").showModal(); });
+$("s-font").addEventListener("change", showSample); $("s-color").addEventListener("input", showSample);
+$("s-stamp").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; try { editStamp = await fileToStamp(f); $("s-stampOn").checked = true; showStamp(); } catch (err) { toast("تعذّر قراءة صورة الختم."); } });
+$("s-stamp-del").addEventListener("click", () => { editStamp = ""; showStamp(); });
+$("form-settings").addEventListener("submit", e => { e.preventDefault();
+  Object.assign(settings, {font: $("s-font").value, color: $("s-color").value, clubOld: clean($("s-clubOld").value), clubNew: clean($("s-clubNew").value),
+    dateOn: $("s-dateOn").checked, date: $("s-date").value, stampOn: $("s-stampOn").checked, stamp: editStamp});
+  saveSettings(); $("dlg-settings").close(); toast("حُفظت الإعدادات. تُطبَّق على كل الاستمارات التالية."); });
+
+/* ---------- wiring ---------- */
+$("btn-add").addEventListener("click", () => openEdit(null));
+$("btn-import").addEventListener("click", () => { $("imp-status").textContent = ""; $("dlg-import").showModal(); });
+document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
+swimmers = load() || [exampleSwimmer()]; render();
+if ("serviceWorker" in navigator && !inHost) navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>
