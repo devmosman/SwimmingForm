@@ -94,6 +94,7 @@ fieldset{border:1px solid var(--line);border-radius:10px;margin:0;padding:12px;m
 legend{font-weight:700;padding:0 6px;font-size:.95rem}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 label.f{display:flex;flex-direction:column;gap:3px;font-size:.86rem;color:var(--muted);min-width:0}
+label.f input[type=range]{padding:0;min-height:32px;background:transparent;border:0;accent-color:var(--lane)}
 label.f input,label.f select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;color:var(--ink);width:100%}
 input.ltr{direction:ltr;text-align:right;font-variant-numeric:tabular-nums}
 .photo-pick{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -183,6 +184,17 @@ footer{color:var(--muted);font-size:.82rem;padding:0 0 32px}
           </div>
         </div>
       </fieldset>
+      <fieldset><legend>البصمة (اختياري)</legend>
+        <div class="photo-pick">
+          <img class="stamp-prev" id="f-finger-img" alt="صورة البصمة" hidden>
+          <div>
+            <label class="btn small" for="f-finger" style="display:inline-flex;align-items:center">رفع صورة البصمة</label>
+            <button class="btn small danger" id="f-finger-del" type="button" hidden>إزالة</button>
+            <input id="f-finger" type="file" accept="image/*" hidden>
+            <p class="hint">صورة بصمة صاحب الموافقة نفسه (ولي الأمر لمن دون 18، أو اللاعب) على ورقة بيضاء. إن تُركت فارغة يبقى المربع للبصمة بالحبر.</p>
+          </div>
+        </div>
+      </fieldset>
     </div>
     <div class="dlg-foot">
       <button class="btn water" type="submit">حفظ</button>
@@ -211,11 +223,11 @@ footer{color:var(--muted);font-size:.82rem;padding:0 0 32px}
         <p class="hint">تُعبأ تلقائيًا عند إضافة سباح جديد، وعند الاستيراد إذا كانت الخانة فارغة في الإكسيل.</p>
       </fieldset>
       <fieldset><legend>مصادقة النادي المراد الانتقال إليه</legend>
-        <label class="chk"><input id="s-dateOn" type="checkbox">كتابة تاريخ المصادقة (ميلادي وهجري)</label>
+        <label class="chk"><input id="s-dateOn" type="checkbox">كتابة التاريخ (ميلادي وهجري)</label>
         <label class="f" style="max-width:260px">التاريخ (اتركه فارغًا لتاريخ يوم الإنشاء)<input id="s-date" type="date"></label>
-        <label class="chk" style="margin-top:8px"><input id="s-stampOn" type="checkbox">وضع ختم النادي على الاستمارة</label>
+        <label class="chk" style="margin-top:8px"><input id="s-stampOn" type="checkbox">وضع الختم على الاستمارة</label>
         <div class="photo-pick">
-          <img class="stamp-prev" id="s-stamp-img" alt="ختم النادي" hidden>
+          <img class="stamp-prev" id="s-stamp-img" alt="الختم" hidden>
           <div>
             <label class="btn small" for="s-stamp" style="display:inline-flex;align-items:center">رفع صورة الختم</label>
             <button class="btn small danger" id="s-stamp-del" type="button">إزالة الختم</button>
@@ -223,6 +235,22 @@ footer{color:var(--muted);font-size:.82rem;padding:0 0 32px}
             <p class="hint">صورة بخلفية بيضاء. تُحفظ على هذا الجهاز فقط ولا تُرفع مع كود التطبيق. توقيع الرئيس التنفيذي يبقى يدويًا.</p>
           </div>
         </div>
+        <label class="f" style="margin-top:8px">حجم الختم: <span id="s-size-out"></span><input id="s-stampSize" type="range" min="40" max="120" step="2"></label>
+      </fieldset>
+      <fieldset><legend>موافقة النادي الأول</legend>
+        <label class="chk"><input id="s-dateOn2" type="checkbox">كتابة التاريخ (ميلادي وهجري)</label>
+        <label class="f" style="max-width:260px">التاريخ (اتركه فارغًا لتاريخ يوم الإنشاء)<input id="s-date2" type="date"></label>
+        <label class="chk" style="margin-top:8px"><input id="s-stampOn2" type="checkbox">وضع الختم على الاستمارة</label>
+        <div class="photo-pick">
+          <img class="stamp-prev" id="s-stamp-img2" alt="الختم" hidden>
+          <div>
+            <label class="btn small" for="s-stamp2" style="display:inline-flex;align-items:center">رفع صورة الختم</label>
+            <button class="btn small danger" id="s-stamp-del2" type="button">إزالة الختم</button>
+            <input id="s-stamp2" type="file" accept="image/*" hidden>
+            <p class="hint">يرفعه المخوَّل بالختم عن النادي الأول. يُحفظ على هذا الجهاز فقط. توقيع الرئيس التنفيذي يبقى يدويًا.</p>
+          </div>
+        </div>
+        <label class="f" style="margin-top:8px">حجم الختم: <span id="s-size-out2"></span><input id="s-stampSize2" type="range" min="40" max="120" step="2"></label>
       </fieldset>
     </div>
     <div class="dlg-foot">
@@ -281,12 +309,12 @@ const SKEY = "swim-transfer-settings-v1";
 const FONTS = {plex: ["IBM Plex Sans Arabic", '"IBM Plex Sans Arabic"'], cairo: ["Cairo", '"Cairo"'], tajawal: ["Tajawal", '"Tajawal"'], kufi: ["Noto Kufi Arabic", '"Noto Kufi Arabic"'],
   naskh: ["Noto Naskh Arabic (نسخ)", '"Noto Naskh Arabic"'], amiri: ["Amiri (نسخ كلاسيكي)", '"Amiri"'], system: ["خط الجهاز", "Tahoma"]};
 const FALLBACK = ',"Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif';
-let settings = {font: "plex", color: "#000000", clubOld: "نادي سما المواهب الرياضي", clubNew: "نادي حلم الابطال", dateOn: true, date: "", stampOn: true, stamp: ""};
+let settings = {font: "plex", color: "#000000", clubOld: "نادي سما المواهب الرياضي", clubNew: "نادي حلم الابطال", dateOn: true, date: "", stampOn: true, stamp: "", stampSize: 56, dateOn2: true, date2: "", stampOn2: true, stamp2: "", stampSize2: 56};
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SKEY) || "{}")); } catch (e) {}
 if (!FONTS[settings.font]) settings.font = "plex";
 const saveSettings = () => { try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch (e) {} };
 const todayIso = () => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`; };
-let swimmers = [], editingId = null, editPhoto = "", previewOf = null, downloads = null;
+let swimmers = [], editingId = null, editPhoto = "", editFinger = "", previewOf = null, downloads = null;
 const inHost = !!(window.claude && typeof window.claude.use === "function");
 
 /* ---------- helpers ---------- */
@@ -332,7 +360,7 @@ function issuesOf(s){
 
 /* ---------- storage ---------- */
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(swimmers)); }
-  catch (e) { try { localStorage.setItem(KEY, JSON.stringify(swimmers.map(s => ({...s, photo: ""})))); } catch (e2) {} } }
+  catch (e) { try { localStorage.setItem(KEY, JSON.stringify(swimmers.map(s => ({...s, photo: "", finger: ""})))); } catch (e2) {} } }
 function load(){ try { const v = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(v)) return v; } catch (e) {} return null; }
 function exampleSwimmer(){ return {id: uid(), example: true, sport: "سباحة", name: "سارة أحمد محمد العتيبي", dob: "2012-03-15", hijri: "1433/04/22", nat: "سعودية",
   pid: "1012345678", mob: "0551234567", pno: "", clubOld: settings.clubOld, clubNew: settings.clubNew, gName: "أحمد محمد عبدالله العتيبي", gId: "1087654321", gMob: "0559876543", photo: placeholderPhoto(), photoName: ""}; }
@@ -371,9 +399,12 @@ function openEdit(id){
   editingId = id; const s = swimmers.find(x => x.id === id) || {sport: "سباحة", clubOld: settings.clubOld, clubNew: settings.clubNew};
   $("edit-title").textContent = id ? "تعديل بيانات السباح" : "إضافة سباح";
   FIELDS.forEach(f => $("f-" + f).value = s[f] || (f === "sport" ? "سباحة" : ""));
-  editPhoto = s.photo || ""; showEditPhoto(); $("f-photo").value = ""; updateAgeHint(); $("dlg-edit").showModal();
+  editPhoto = s.photo || ""; showEditPhoto(); $("f-photo").value = ""; editFinger = s.finger || ""; showEditFinger(); $("f-finger").value = ""; updateAgeHint(); $("dlg-edit").showModal();
 }
 function showEditPhoto(){ $("f-photo-img").hidden = !editPhoto; $("f-photo-ph").hidden = !!editPhoto; if (editPhoto) $("f-photo-img").src = editPhoto; }
+function showEditFinger(){ $("f-finger-img").hidden = !editFinger; $("f-finger-del").hidden = !editFinger; if (editFinger) $("f-finger-img").src = editFinger; }
+$("f-finger").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; try { editFinger = await fileToStamp(f); showEditFinger(); } catch (err) { toast("تعذّر قراءة صورة البصمة."); } });
+$("f-finger-del").addEventListener("click", () => { editFinger = ""; showEditFinger(); });
 function updateAgeHint(){ const a = ageOf($("f-dob").value); const minor = a != null && a < 18;
   $("age-hint").textContent = a == null ? "" : `العمر ${a} سنة. يوقّع على الموافقة: ${minor ? "ولي الأمر" : "اللاعب نفسه"}.`;
   $("fs-guardian").hidden = a != null && !minor; }
@@ -385,7 +416,7 @@ $("form-edit").addEventListener("submit", e => { e.preventDefault();
   s.sport = $("f-sport").value; s.name = clean($("f-name").value); s.dob = $("f-dob").value; s.hijri = normHijri($("f-hijri").value) || toHijri(s.dob);
   s.nat = clean($("f-nat").value); s.clubOld = clean($("f-clubOld").value); s.clubNew = clean($("f-clubNew").value); s.gName = clean($("f-gName").value);
   ["pid","mob","pno","gId","gMob"].forEach(f => s[f] = digitsOnly($("f-" + f).value));
-  s.photo = editPhoto; delete s.example;
+  s.photo = editPhoto; s.finger = editFinger; delete s.example;
   if (!s.name) { toast("اكتب الاسم الرباعي أولًا."); $("f-name").focus(); return; }
   if (!swimmers.includes(s)) swimmers.push(s);
   save(); render(); $("dlg-edit").close(); const n = issuesOf(s).err.length; toast(n ? `حُفظ. ما زال ${n} حقل ناقصًا.` : "حُفظ. البيانات مكتملة."); });
@@ -447,7 +478,10 @@ $("btn-tpl").addEventListener("click", async () => { let b = null;
 
 /* ---------- form rendering (coordinates in PDF points on the official A4 form) ---------- */
 const S = 200 / 72, PW = 1654, PH = 2339;
-const STAMP_BOX = [342,580,398,636];
+const SECTIONS = [  // endorsement blocks: stamp centre, Gregorian and Hijri date slots (year, month, day), row y-range
+  {k: "", c: [370,608], g: [[292,334],[337,365],[368,389]], h: [[150,191],[194,222],[225,246]], y: [559,577]},
+  {k: "2", c: [350,765], g: [[280,322],[325,352],[355,377]], h: [[138,179],[182,210],[213,234]], y: [703,721]}];
+const FINGER_BOX = [79,389,142,478];
 const ID1 = [41.5,61.5,81.0,100.8,120.6,140.2,160.0,179.8,199.5,219.5,239.0], ID2 = [272.6,291.5,310.6,329.5,348.5,367.5,386.4,405.5,424.2,443.2,462.2];
 const SPORT = {"سباحة": [377,98,397,118], "غطس": [311,98,332,118], "كرة ماء": [250,98,271,118]};
 let tplPromise = null; const template = () => tplPromise || (tplPromise = loadImage("template.png"));
@@ -471,12 +505,13 @@ async function drawForm(s){
   put([319,314,490,342], s.clubOld); put([56,315,240,344], s.clubNew);
   const minor = issuesOf(s).minor, sg = minor ? [s.gName, s.gId, s.gMob] : [s.name, s.pid, s.mob];
   put([270,381,469,409], sg[0]); boxes(ID2, 413.8, 434.8, sg[1]); put([275,443,473,471], sg[2]);
-  if (settings.dateOn) { const iso = settings.date || todayIso(), dd = iso.split("-"), hh = toHijri(iso).split("/");
-    put([292,559,334,577], dd[0], 10, 1); put([337,559,365,577], dd[1], 10, 1); put([368,559,389,577], dd[2], 10, 1);
-    if (hh.length === 3) { put([150,559,191,577], hh[0], 10, 1); put([194,559,222,577], hh[1], 10, 1); put([225,559,246,577], hh[2], 10, 1); } }
-  if (settings.stampOn && settings.stamp) { try { const im = await loadImage(settings.stamp), b = STAMP_BOX, bw = (b[2] - b[0]) * S, bh = (b[3] - b[1]) * S,
-      k = Math.min(bw / im.width, bh / im.height), w = im.width * k, h2 = im.height * k;
-    g.save(); g.globalCompositeOperation = "multiply"; g.drawImage(im, b[0] * S + (bw - w) / 2, b[1] * S + (bh - h2) / 2, w, h2); g.restore(); } catch (e) {} }
+  const stampIn = async (src, b) => { try { const im = await loadImage(src), bw = (b[2] - b[0]) * S, bh = (b[3] - b[1]) * S, k = Math.min(bw / im.width, bh / im.height), w = im.width * k, h2 = im.height * k;
+    g.save(); g.globalCompositeOperation = "multiply"; g.drawImage(im, b[0] * S + (bw - w) / 2, b[1] * S + (bh - h2) / 2, w, h2); g.restore(); } catch (e) {} };
+  for (const sec of SECTIONS) { const k = sec.k, y = sec.y;
+    if (settings["dateOn" + k]) { const iso = settings["date" + k] || todayIso(), dd = iso.split("-"), hh = toHijri(iso).split("/");
+      dd.forEach((v, i) => put([sec.g[i][0], y[0], sec.g[i][1], y[1]], v, 10, 1)); if (hh.length === 3) hh.forEach((v, i) => put([sec.h[i][0], y[0], sec.h[i][1], y[1]], v, 10, 1)); }
+    if (settings["stampOn" + k] && settings["stamp" + k]) { const r = (settings["stampSize" + k] || 56) / 2; await stampIn(settings["stamp" + k], [sec.c[0] - r, sec.c[1] - r, sec.c[0] + r, sec.c[1] + r]); } }
+  if (s.finger) await stampIn(s.finger, FINGER_BOX);
   if (s.photo) { try { const im = await loadImage(s.photo), bx = [44,42,137,164], bw = (bx[2] - bx[0]) * S, bh = (bx[3] - bx[1]) * S;
     g.fillStyle = "#fff"; g.fillRect(bx[0] * S, bx[1] * S, bw, bh); const k = Math.min(bw / im.width, bh / im.height), w = im.width * k, hh = im.height * k;
     g.drawImage(im, bx[0] * S + (bw - w) / 2, bx[1] * S + (bh - hh) / 2, w, hh); } catch (e) {} }
@@ -528,21 +563,26 @@ $("btn-all").addEventListener("click", async () => { const b = $("btn-all"), lab
   catch (e) { toast("تعذّر إنشاء الملف."); } finally { b.textContent = label; b.disabled = !swimmers.length; } });
 
 /* ---------- settings ---------- */
-let editStamp = "";
+const editStamp = {"": "", "2": ""};
 async function fileToStamp(file){ const url = URL.createObjectURL(file);
   try { const im = await loadImage(url), k = Math.min(1, 700 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
     const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); return c.toDataURL("image/jpeg", .9); } finally { URL.revokeObjectURL(url); } }
-function showStamp(){ $("s-stamp-img").hidden = !editStamp; $("s-stamp-del").hidden = !editStamp; if (editStamp) $("s-stamp-img").src = editStamp; }
+function showStamp(k){ $("s-stamp-img" + k).hidden = !editStamp[k]; $("s-stamp-del" + k).hidden = !editStamp[k]; if (editStamp[k]) $("s-stamp-img" + k).src = editStamp[k]; }
+function showSize(k){ $("s-size-out" + k).textContent = (+$("s-stampSize" + k).value * 0.3528 / 10).toFixed(1) + " سم"; }
 function showSample(){ const p = $("s-sample"); p.style.fontFamily = FONTS[$("s-font").value][1] + FALLBACK; p.style.color = $("s-color").value; }
 Object.entries(FONTS).forEach(([k, v]) => $("s-font").append(el("option", {value: k}, v[0])));
 $("btn-settings").addEventListener("click", () => { $("s-font").value = settings.font; $("s-color").value = settings.color; $("s-clubOld").value = settings.clubOld; $("s-clubNew").value = settings.clubNew;
-  $("s-dateOn").checked = settings.dateOn; $("s-date").value = settings.date; $("s-stampOn").checked = settings.stampOn; editStamp = settings.stamp; $("s-stamp").value = ""; showStamp(); showSample(); $("dlg-settings").showModal(); });
+  for (const k of ["", "2"]) { $("s-dateOn" + k).checked = settings["dateOn" + k]; $("s-date" + k).value = settings["date" + k]; $("s-stampOn" + k).checked = settings["stampOn" + k];
+    $("s-stampSize" + k).value = settings["stampSize" + k] || 56; editStamp[k] = settings["stamp" + k]; $("s-stamp" + k).value = ""; showStamp(k); showSize(k); }
+  showSample(); $("dlg-settings").showModal(); });
 $("s-font").addEventListener("change", showSample); $("s-color").addEventListener("input", showSample);
-$("s-stamp").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; try { editStamp = await fileToStamp(f); $("s-stampOn").checked = true; showStamp(); } catch (err) { toast("تعذّر قراءة صورة الختم."); } });
-$("s-stamp-del").addEventListener("click", () => { editStamp = ""; showStamp(); });
+for (const k of ["", "2"]) {
+  $("s-stamp" + k).addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; try { editStamp[k] = await fileToStamp(f); $("s-stampOn" + k).checked = true; showStamp(k); } catch (err) { toast("تعذّر قراءة صورة الختم."); } });
+  $("s-stamp-del" + k).addEventListener("click", () => { editStamp[k] = ""; showStamp(k); });
+  $("s-stampSize" + k).addEventListener("input", () => showSize(k)); }
 $("form-settings").addEventListener("submit", e => { e.preventDefault();
-  Object.assign(settings, {font: $("s-font").value, color: $("s-color").value, clubOld: clean($("s-clubOld").value), clubNew: clean($("s-clubNew").value),
-    dateOn: $("s-dateOn").checked, date: $("s-date").value, stampOn: $("s-stampOn").checked, stamp: editStamp});
+  Object.assign(settings, {font: $("s-font").value, color: $("s-color").value, clubOld: clean($("s-clubOld").value), clubNew: clean($("s-clubNew").value)});
+  for (const k of ["", "2"]) Object.assign(settings, {["dateOn" + k]: $("s-dateOn" + k).checked, ["date" + k]: $("s-date" + k).value, ["stampOn" + k]: $("s-stampOn" + k).checked, ["stampSize" + k]: +$("s-stampSize" + k).value, ["stamp" + k]: editStamp[k]});
   saveSettings(); $("dlg-settings").close(); toast("حُفظت الإعدادات. تُطبَّق على كل الاستمارات التالية."); });
 
 /* ---------- wiring ---------- */
